@@ -441,6 +441,7 @@ function addAnswer() {
     }, 500);
   }
 
+  
   document.querySelector("#display ul").prepend(li);
   setTimeout(() => {
     li.classList.remove("active");
