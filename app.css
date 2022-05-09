@@ -90,6 +90,8 @@ main {
   height: 140px;
 }
 #display div ul li {
+  position: relative;
+  overflow: hidden;
   background-color: #ffffff00;
   visibility: visible;
   padding: 0 10px;
@@ -105,6 +107,21 @@ main {
   visibility: hidden;
   transform: scale(0.7, 0.7);
   animation: added 0.3s ease forwards;
+}
+#display div ul li > hr {
+  position: absolute;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  opacity: 0.2;
+}
+#display div ul li > hr {
+  -webkit-box-shadow: 0 0 0px 0px #fff;
+  box-shadow: 0 0 0px 0px #fff;
+  border-radius: 50%;
+}
+#display div ul li > hr.active {
+  -webkit-box-shadow: 0 0 35px 20px #fff;
+  box-shadow: 0 0 35px 20px #fff;
 }
 #display div ul li:hover {
   background-color: #ffffff09;
@@ -151,6 +168,7 @@ main {
   background-color: #000000ad;
   color: #fff;
 }
+
 
 @keyframes added {
   from {

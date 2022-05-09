@@ -424,13 +424,14 @@ function addAnswer() {
   let li = document.createElement("li");
   let span1 = document.createElement("span");
   let span2 = document.createElement("span");
+  let hr = document.createElement("hr");
 
   li.classList.add("center", "col", "active");
   span1.classList.add("center");
   span1.textContent = equation;
   span2.textContent = solution;
 
-  li.append(span1, span2);
+  li.append(span1, span2, hr);
 
   if (document.querySelector("#display ul").childElementCount > 1) {
     setTimeout(() => {
@@ -444,6 +445,18 @@ function addAnswer() {
   setTimeout(() => {
     li.classList.remove("active");
   }, 400);
+
+  li.addEventListener("mousemove", (e) => {
+    let box = li.getBoundingClientRect();
+    let x = Math.abs(Math.round(((e.x - box.x) / box.width) * 100));
+    let y = Math.abs(Math.round(((e.y - box.y) / box.height) * 100));
+
+    hr.style.left = x + "%";
+    hr.style.top = y + "%";
+
+    setTimeout(() => hr.classList.add("active"), 10);
+  });
+  li.addEventListener("mouseout", () => hr.classList.remove("active"));
 }
 
 document.querySelector("#display ul").addEventListener("click", (e) => {
