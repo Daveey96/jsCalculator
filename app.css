@@ -98,7 +98,7 @@ main {
   height: 60px;
   width: 100%;
   align-items: flex-start !important;
-  margin-bottom: 10p  x;
+  margin-bottom: 10p x;
   transform: scale(1, 1);
   transition: 0.4s;
 }
@@ -107,21 +107,6 @@ main {
   visibility: hidden;
   transform: scale(0.7, 0.7);
   animation: added 0.3s ease forwards;
-}
-#display div ul li > hr {
-  position: absolute;
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
-  opacity: 0.2;
-}
-#display div ul li > hr {
-  -webkit-box-shadow: 0 0 0px 0px #fff;
-  box-shadow: 0 0 0px 0px #fff;
-  border-radius: 50%;
-}
-#display div ul li > hr.active {
-  -webkit-box-shadow: 0 0 35px 20px #fff;
-  box-shadow: 0 0 35px 20px #fff;
 }
 #display div ul li:hover {
   background-color: #ffffff09;
@@ -137,38 +122,36 @@ main {
   font-size: 20px;
 }
 #buttons {
-  width: 70%;
-  height: 100%;
-  padding: 10px 20px;
-  justify-content: space-between;
-}
-#buttons div {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
   flex: 1;
-  height: 95%;
+  height: 100%;
+  padding: 15px 25px;
 }
 #buttons button {
   font-family: inherit;
-  font-size: 25px;
-  margin-top: 10px;
-  width: 85%;
-  height: 50%;
+  font-size: 4.2vh;
+  width: 100%;
+  height: 100%;
   border: none;
   box-shadow: 0 0 5px 5px #00000056;
   background-color: #ffffffbf;
-  color: rgb(5, 19, 95);
+  color: #05135f;
   transition: 0.3s;
   border-radius: 10px;
 }
-#buttons button:hover,
-#buttons button.active {
+#buttons button:hover {
   transform: scale(0.9, 0.9);
-  box-shadow: 0px 0px 0px hsla(0, 0%, 0%, 0.337);
+  box-shadow: 0px 0px 0px #00000056;
 }
 #buttons button.num {
   background-color: #000000ad;
   color: #fff;
 }
-
+#buttons button span {
+  position: absolute;
+}
 
 @keyframes added {
   from {
@@ -179,7 +162,7 @@ main {
   }
 }
 
-@media (max-width: 550px) {
+@media (max-width: 576px) {
   main {
     flex-direction: column;
   }
@@ -189,7 +172,20 @@ main {
   }
   #buttons {
     width: 100%;
-    height: 60%;
+    gap: 0.5rem;
+    padding: 10px 10px;
+  }
+  #buttons button {
+    border-radius: 5px;
+    font-size: 2vh;
+  }
+  #buttons button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  #buttons button:active {
+    transform: scale(0.9, 0.9);
+    box-shadow: 0px 0px 0px #00000056;
   }
   #display div {
     display: none;

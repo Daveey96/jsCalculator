@@ -1,106 +1,63 @@
-let answer = 0;
-let realValue = 0;
-let currentValue;
+function availableSpace(active) {
+  if (document.querySelector("#display input").value.length > 9) return false;
+  return true;
+}
+
+function reset() {
+  if (document.querySelector("#display input").classList.contains("active")) {
+    document.querySelector("#display input").classList.remove("active");
+    document.querySelector("#display b").classList.remove("active");
+    document.querySelector("#display input").value = "";
+    document.querySelector("#display b").textContent = "";
+  }
+}
 
 document.querySelector("#buttons").addEventListener("click", (e) => {
   reset();
+  let con = e.target.textContent;
+  let display = (res) => {
+    if (res) document.querySelector("#display input").value += res;
+  };
 
-  if (e.target.tagName == "BUTTON" && availableSpace() == true) {
-    switch (e.target.textContent) {
-      case "x²":
-        document.querySelector("#display input").value += "²";
-        break;
-
-      case "√x":
-        document.querySelector("#display input").value += "√";
-        break;
-      case "del":
-      case "C":
-      case "=":
-        break;
-
-      default:
-        document.querySelector("#display input").value += e.target.textContent;
-        break;
-    }
-  }
-
-  switch (e.target.textContent) {
-    case "del":
-    case "C":
-    case "=":
-      break;
-  }
-  result(e.target.textContent);
+  if (availableSpace() == true) {
+    if (e.target.tagName == "BUTTON")
+      if (con == "del" || con == "C" || con == "=") display(false);
+      else if (con == "x²") display("²");
+      else if (con == "√x") display("√");
+      else display(con);
+    result(e.target.textContent);
+  } else if (con == "del" || con == "C" || con == "=")
+    result(e.target.textContent);
 });
 
 window.addEventListener("keydown", (e) => {
   reset();
-
   if (availableSpace() == true) {
-    if (!isNaN(parseInt(e.key))) {
+    if (!isNaN(parseInt(e.key)) || e.key == "+" || e.key == "-" || e.key == ".")
       str(e.key);
-    }
-    switch (e.key) {
-      case "+":
-      case "-":
-      case ".":
-        str(e.key);
-        break;
-      case "/":
-        str("÷");
-        break;
-      case "*":
-        str("×");
-        break;
-      case "a":
-        str("Ans");
-        break;
-      case "c":
-        str("cos");
-        break;
-      case "s":
-        str("sin");
-        break;
-      case "t":
-        str("tan");
-        break;
-      case "e":
-        str("E");
-        break;
-      case "^":
-        str("²", "x²", "²");
-        break;
-    }
+    else if (
+      e.key == "c" ||
+      e.key == "a" ||
+      e.key == "s" ||
+      e.key == "t" ||
+      e.key == "e"
+    ) {
+      let arr = ["cos", "Ans", "sin", "tan", "E"];
+      for (let i = 0; i < arr.length; i++)
+        if (arr[i][0].toLowerCase() == e.key) str(arr[i]);
+    } else if (e.key == "/") str("÷");
+    else if (e.key == "*") str("×");
   }
 
-  switch (e.key) {
-    case "Delete":
-      str("nil", "C");
-      break;
-    case "Backspace":
-      str("nil", "del");
-      break;
-    case "=":
-      str("nil", "=");
-      break;
-  }
+  if (e.key == "Delete") str("C", false);
+  else if (e.key == "Backspace") str("del", false);
+  else if (e.key == "=") str("=", false);
 
-  function str(output, findbtn, res) {
-    if (findbtn == undefined && res == undefined) {
-      document.querySelector("#display input").value += output;
-      findButton(output);
-      result(output);
-      return;
-    }
-    if (output == "nil") {
-      findButton(findbtn);
-      result(findbtn);
-      return;
-    }
-    document.querySelector("#display input").value += output;
+  function str(findbtn, output) {
+    if (output == undefined)
+      document.querySelector("#display input").value += findbtn;
     findButton(findbtn);
-    result(res);
+    result(findbtn);
   }
 
   function findButton(button) {
@@ -112,28 +69,14 @@ window.addEventListener("keydown", (e) => {
         setTimeout(() => {
           buttons[i].classList.remove("active");
         }, 300);
-
         break;
       }
     }
   }
 });
 
-function reset() {
-  if (document.querySelector("#display input").classList.contains("active")) {
-    document.querySelector("#display input").classList.remove("active");
-    document.querySelector("#display b").classList.remove("active");
-    document.querySelector("#display input").value = "";
-    document.querySelector("#display b").textContent = "";
-  }
-}
-
-function availableSpace(active) {
-  if (document.querySelector("#display input").value.length > 9) {
-    return false;
-  }
-  return true;
-}
+let cachedResult = 0;
+let globalAnswer = 0;
 
 function result(button) {
   if (button === "C") {
@@ -149,7 +92,7 @@ function result(button) {
     }
     document.querySelector("#display input").classList.add("active");
     document.querySelector("#display b").classList.add("active");
-    answer = parseFloat(realValue);
+    globalAnswer = parseFloat(cachedResult);
 
     addAnswer();
     return;
@@ -158,235 +101,136 @@ function result(button) {
   if (button === "del") {
     let inputValue = document.querySelector("#display input").value;
     inputValue = inputValue.slice(0, inputValue.length - 1);
-
     if (
       inputValue.slice(-2) == "An" ||
       inputValue.slice(-2) == "co" ||
       inputValue.slice(-2) == "ta" ||
       inputValue.slice(-2) == "si"
-    ) {
+    )
       inputValue = inputValue.slice(0, inputValue.length - 2);
-    }
     document.querySelector("#display input").value = inputValue;
   }
 
-  displayResult(calCulate());
+  displayResult(filter());
 }
 
-function calCulate() {
-  let inputValue = document.querySelector("#display input").value;
-  let e = 0;
-  let hold = false;
-  let position = [];
-  let sign = [];
-  let calcValue = "";
+function filter() {
+  let rawValue = document.querySelector("#display input").value;
+  let query = ["-", "÷", "×", "²", "√", "cos", "sin", "tan", "E"];
+  let signs = rawValue;
+  let value = rawValue;
 
-  for (let i = 0; i < inputValue.length; i++) {
-    switch (inputValue[i]) {
-      case "A":
-        if (hold == false) calcValue += answer.toString();
-        else hold = true;
-
-        e = 2;
-        break;
-
-      case "t":
-      case "c":
-        if (inputValue.slice(i + 3, inputValue.length) !== "") {
-          let num = parseFloat(inputValue.slice(i + 3, inputValue.length));
-          let numCount = num.toString().length;
-
-          if (isNaN(num)) {
-            num = answer;
-            numCount = 3;
-          }
-          switch (inputValue[i]) {
-            case "t":
-              num = Math.tan((Math.PI * num) / 180);
-              break;
-            case "c":
-              if (num == 90) {
-                num = 0;
-                break;
-              }
-              num = Math.cos((Math.PI * num) / 180);
-              break;
-          }
-
-          if (isNaN(parseFloat(calcValue[calcValue.length - 1])))
-            calcValue += num;
-          else calcValue += "×" + num;
-
-          hold = true;
-          e = 3 + numCount;
-        }
-        break;
-
-      case "s":
-        if (inputValue[i - 1] != "n" && inputValue[i - 1] != "o") {
-          if (inputValue.slice(i + 3, inputValue.length) !== "") {
-            let num = parseFloat(inputValue.slice(i + 3, inputValue.length));
-            let numCount = num.toString().length;
-
-            if (isNaN(num)) {
-              num = answer;
-              numCount = 3;
-            }
-
-            num = Math.sin((Math.PI * num) / 180);
-            if (isNaN(parseFloat(calcValue[calcValue.length - 1])))
-              calcValue += num;
-            else calcValue += "×" + num;
-
-            hold = true;
-            e = 3 + numCount;
-          }
-        }
-        break;
-
-      case "√":
-        if (inputValue.slice(i + 1, inputValue.length) !== "") {
-          let num = parseFloat(inputValue.slice(i + 1, inputValue.length));
-          let numCount = num.toString().length;
-
-          if (isNaN(num)) {
-            num = answer;
-            numCount = 3;
-          }
-          num = Math.sqrt(num);
-
-          if (isNaN(parseFloat(calcValue[calcValue.length - 1])))
-            calcValue += num;
-          else calcValue += "×" + num;
-
-          if (inputValue.slice(i + 1, i + 2) == "A") hold = true;
-          e = numCount + 1;
-        }
-        break;
-
-      case "²":
-        if (
-          calcValue.includes("+") ||
-          calcValue.includes("-") ||
-          calcValue.includes("÷") ||
-          calcValue.includes("×")
-        ) {
-          for (let p = calcValue.length - 1; p >= 0; p--) {
-            if (isNaN(parseFloat(calcValue[p]))) {
-              let num = Math.abs(calcValue.slice(p + 1, calcValue.length));
-              num = parseFloat(num) * parseFloat(num);
-
-              if (calcValue[p] == "-")
-                calcValue = calcValue.slice(0, p) + num.toString();
-              else calcValue = calcValue.slice(0, p + 1) + num.toString();
-              break;
-            }
-          }
-        } else calcValue = parseFloat(calcValue) * parseFloat(calcValue);
-        break;
-
-      case "E":
-        if (inputValue.slice(i + 1, inputValue.length) !== "") {
-          let num = parseFloat(inputValue.slice(i + 1, inputValue.length));
-          let str = num.toString();
-          let l = calcValue;
-          let r = -1;
-          num = Math.pow(10, num);
-
-          for (let index = calcValue.length - 1; index >= 0; index--) {
-            if (
-              calcValue[index] == "+" ||
-              calcValue[index] == "-" ||
-              calcValue[index] == "÷" ||
-              calcValue[index] == "×"
-            ) {
-              l = parseFloat(calcValue.slice(index + 1));
-              r = index;
-              break;
-            }
-          }
-
-          num = num * l;
-          calcValue = calcValue.slice(0, r + 1) + num.toString();
-
-          e = str.length + 1;
-        }
-        break;
-
-      case ".":
-      default:
-        if (e == 0) {
-          calcValue += inputValue[i];
-        }
-        break;
+  for (let i = 0; i < query.length; i++)
+    if (rawValue.search(query[i]) != -1) {
+      let sign = "@";
+      if (i > 2) sign = "%";
+      else if (i == 0) sign = "#";
+      signs = signs.replace(new RegExp(query[i], "g"), `/${sign + (i + 1)}/`);
+      value = value.replace(new RegExp(query[i], "g"), "$");
+    } else if (rawValue.search(/\+/) != -1) {
+      signs = signs.replace(/\+/, `/#0/`);
+      value = value.replace(/\+/, "$");
     }
-    e--;
-    if (e == -1) {
-      e = 0;
+  if (rawValue.search("Ans") != -1) {
+    signs = signs.replace("Ans", "");
+    value = value.replace("Ans", globalAnswer.toString());
+  }
+
+  let num = 0;
+  let numCheck = true;
+  let pos = [];
+  let pos2 = [];
+  signs = signs.split("/").filter((sign) => isNaN(sign) && sign != "");
+  for (let i = 0; i < value.length; i++) if (value[i] == "$") pos.push(i);
+  for (let i = 0; i < value.length; i++)
+    if (value[i] != "$") numCheck ? (numCheck = false) : num++;
+    else {
+      pos2.push(i - num);
+      numCheck = true;
+    }
+  value = value.split("$").filter((n) => n != "");
+  for (let i = 0; i < value.length; i++) value[i] = parseFloat(value[i]);
+
+  return calC(value, signs, pos, pos2);
+}
+
+function calC(value, signs, pos, pos2) {
+  let change = 0;
+  for (let i = 0; i < signs.length; i++) {
+    if (signs[i].slice(0, 1) == "%") {
+      let id = signs[i].slice(1);
+      let exp = (num) => {
+        let i = 0;
+        let value = 1;
+        while (i < num) {
+          value *= 10;
+          i++;
+        }
+        return value;
+      };
+      let calCulate = (calcValue) => {
+        if (value[pos2[i] - i - 1]) {
+          if (pos[i - 1] && pos[i - 1] == pos[i] - 1)
+            value[pos2[i] - i] = calcValue;
+          else {
+            value[pos2[i] - i] = calcValue * value[pos2[i] - i - 1];
+            value.splice(pos2[i] - i - 1, 1);
+            change++;
+          }
+        } else value[pos2[i] - i] = calcValue;
+      };
+
+      if (id == 4)
+        value[pos2[i] - i - 1 - change] =
+          value[pos2[i] - i - 1 - change] * value[pos2[i] - i - 1 - change];
+      else if (id == 5) calCulate(Math.sqrt(value[pos2[i] - i]));
+      else if (id == 6)
+        calCulate(Math.cos((Math.PI * value[pos2[i] - i]) / 180));
+      else if (id == 7)
+        calCulate(Math.sin((Math.PI * value[pos2[i] - i]) / 180));
+      else if (id == 8)
+        calCulate(Math.tan((Math.PI * value[pos2[i] - i]) / 180));
+      else if (id == 9) calCulate(exp(value[pos2[i] - i]));
     }
   }
 
-  for (let u = 1; u < calcValue.length; u++) {
-    if (isNaN(parseInt(calcValue[u]))) {
-      if (calcValue[u] != ".") {
-        position.push(u);
-        sign.push(calcValue[u]);
-      }
-    }
+  let total = value[0];
+  let init = 0;
+
+  for (let i = 0; i < signs.length; i++) {
+    let id = signs[i].slice(1);
+    let sign = signs[i].slice(0, 1);
+
+    if (signs[i + 1]) sign = signs[i + 1].slice(0, 1);
+
+    if (
+      signs[i].slice(0, 1) == "#" &&
+      sign == "#" &&
+      pos[i + 1] == pos[i] + 1
+    ) {
+      let x = 0;
+      let num = 1;
+      while (pos[i + x] == pos[i] + x) x++;
+      for (let r = 0; r < x; r++)
+        if (signs[i + r].slice(1) == 0) num *= 1;
+        else num *= -1;
+      total = total + num * value[init + 1];
+      i += x - 1;
+      init++;
+    } else if (id == 0) total = total + value[init + 1];
+    else if (id == 1) total = total - value[init + 1];
+    else if (id == 2) total = total / value[init + 1];
+    else if (id == 3) total = total * value[init + 1];
+
+    if (id > -1 && id < 4) init++;
   }
 
-  let total = parseFloat(calcValue);
-  if (sign[0] !== undefined) {
-    r = 0;
-    while (r < sign.length) {
-      if (r == 0) {
-        let lNum = position[1];
-        if (lNum == undefined) lNum = calcValue.length;
-
-        let number1 = parseFloat(calcValue.slice(0, position[0]));
-        let number2 = parseFloat(calcValue.slice(position[0] + 1, lNum));
-        total = mathFunc(number1, number2, sign[0]);
-
-        currentValue = total;
-      } else {
-        let lNum = position[r + 1];
-        if (lNum == undefined) lNum = calcValue.length;
-
-        let number1 = currentValue;
-        let number2 = parseFloat(calcValue.slice(position[r] + 1, lNum));
-
-        total = mathFunc(number1, number2, sign[r]);
-
-        currentValue = total;
-      }
-      r++;
-    }
-  }
-
-  if (isNaN(total)) {
-    return "";
-  }
+  if (total == NaN || total == undefined) total = "";
   return total;
 }
 
-function mathFunc(no1, no2, sign) {
-  switch (sign) {
-    case "+":
-      return no1 + no2;
-
-    case "-":
-      return no1 - no2;
-
-    case "÷":
-      return no1 / no2;
-
-    case "×":
-      return no1 * no2;
-  }
-}
-
 function displayResult(result) {
-  realValue = result;
+  cachedResult = result;
 
   if (
     result !== "" &&
@@ -424,14 +268,13 @@ function addAnswer() {
   let li = document.createElement("li");
   let span1 = document.createElement("span");
   let span2 = document.createElement("span");
-  let hr = document.createElement("hr");
 
   li.classList.add("center", "col", "active");
   span1.classList.add("center");
   span1.textContent = equation;
   span2.textContent = solution;
 
-  li.append(span1, span2, hr);
+  li.append(span1, span2);
 
   if (document.querySelector("#display ul").childElementCount > 1) {
     setTimeout(() => {
@@ -441,23 +284,10 @@ function addAnswer() {
     }, 500);
   }
 
-  
   document.querySelector("#display ul").prepend(li);
   setTimeout(() => {
     li.classList.remove("active");
   }, 400);
-
-  li.addEventListener("mousemove", (e) => {
-    let box = li.getBoundingClientRect();
-    let x = Math.abs(Math.round(((e.x - box.x) / box.width) * 100));
-    let y = Math.abs(Math.round(((e.y - box.y) / box.height) * 100));
-
-    hr.style.left = x + "%";
-    hr.style.top = y + "%";
-
-    setTimeout(() => hr.classList.add("active"), 10);
-  });
-  li.addEventListener("mouseout", () => hr.classList.remove("active"));
 }
 
 document.querySelector("#display ul").addEventListener("click", (e) => {
